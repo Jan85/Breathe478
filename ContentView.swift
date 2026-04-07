@@ -2,10 +2,37 @@ import SwiftUI
 
 struct ContentView: View {
     private let phases: [Phase] = [
-        .init(name: "Breathe In", duration: 4, color: .green),
-        .init(name: "Hold", duration: 7, color: .yellow),
-        .init(name: "Breathe Out", duration: 8, color: .red)
+        .init(name: "Breathe In", duration: 4, color: Color(hex: "38bdf8")),    // Sky blue
+        .init(name: "Hold", duration: 7, color: Color(hex: "a78bfa")),        // Purple
+        .init(name: "Breathe Out", duration: 8, color: Color(hex: "4ade80"))  // Green
     ]
+    
+    // Custom color extension for hex support
+    private extension Color {
+        init(hex: String) {
+            let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+            var int: UInt64 = 0
+            Scanner(string: hex).scanHexInt64(&int)
+            let a, r, g, b: UInt64
+            switch hex.count {
+            case 3: // RGB (12-bit)
+                (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
+            case 6: // RGB (24-bit)
+                (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
+            case 8: // ARGB (32-bit)
+                (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
+            default:
+                (a, r, g, b) = (1, 1, 1, 0)
+            }
+            self.init(
+                .sRGB,
+                red: Double(r) / 255,
+                green: Double(g) / 255,
+                blue:  Double(b) / 255,
+                opacity: Double(a) / 255
+            )
+        }
+    }
 
     @State private var currentPhaseIndex = 0
     @State private var remainingSeconds = 4
@@ -22,83 +49,158 @@ struct ContentView: View {
     }
 
     var body: some View {
-        VStack(spacing: 32) {
-            Text("4-7-8 Breathing")
-                .font(.largeTitle)
-                .bold()
+        ZStack {
+            // Gradient background
+            LinearGradient(
+                colors: [Color(hex: "0f172a"), Color(hex: "1e293b"), Color(hex: "0f172a")],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+            
+            VStack(spacing: 28) {
+                // Title with gradient text
+                Text("4-7-8 Breathing")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [Color(hex: "60a5fa"), Color(hex: "a78bfa")],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
 
-            breathingRing
-                .frame(width: 300, height: 300)
+                breathingRing
+                    .frame(width: 280, height: 280)
 
-            VStack(spacing: 12) {
-                Text(phases[currentPhaseIndex].name)
-                    .font(.title2)
-                    .bold()
+                VStack(spacing: 8) {
+                    Text(phases[currentPhaseIndex].name)
+                        .font(.title3)
+                        .fontWeight(.medium)
+                        .foregroundColor(Color(hex: "94a3b8"))
+                        .textCase(.uppercase)
+                        .tracking(2)
 
-                Text("\(remainingSeconds) seconds")
-                    .font(.title)
-                    .monospacedDigit()
-                
-                Text("Cycles: \(cyclesCompleted)")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-            }
-
-            HStack(spacing: 24) {
-                Button(action: startSession) {
-                    Text(isRunning ? "Restart" : "Start")
-                        .font(.headline)
-                        .frame(minWidth: 120, minHeight: 44)
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
+                    Text("\(remainingSeconds)")
+                        .font(.system(size: 56, weight: .bold, design: .rounded))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [Color.white, Color(hex: "cbd5e1")],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .monospacedDigit()
+                    
+                    Text("seconds")
+                        .font(.subheadline)
+                        .foregroundColor(Color(hex: "64748b"))
+                    
+                    Text("Cycles: \(cyclesCompleted)")
+                        .font(.caption)
+                        .foregroundColor(Color(hex: "64748b"))
+                        .padding(.top, 4)
                 }
 
-                Button(action: stopSession) {
-                    Text("Stop")
-                        .font(.headline)
-                        .frame(minWidth: 120, minHeight: 44)
-                        .background(Color.gray.opacity(0.2))
-                        .foregroundColor(.primary)
-                        .cornerRadius(12)
-                }
-            }
+                HStack(spacing: 20) {
+                    Button(action: startSession) {
+                        Text(isRunning ? "Restart" : "Start")
+                            .font(.headline)
+                            .frame(width: 140, height: 50)
+                            .background(
+                                LinearGradient(
+                                    colors: [Color(hex: "3b82f6"), Color(hex: "2563eb")],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .foregroundColor(.white)
+                            .cornerRadius(16)
+                            .shadow(color: Color(hex: "3b82f6").opacity(0.4), radius: 8, x: 0, y: 4)
+                    }
 
-            VStack(alignment: .leading, spacing: 8) {
-                ForEach(phases.indices, id: \ .self) { index in
-                    HStack {
-                        Circle()
-                            .fill(phases[index].color)
-                            .frame(width: 16, height: 16)
-                        Text(phaseDescription(for: phases[index]))
+                    Button(action: stopSession) {
+                        Text("Stop")
+                            .font(.headline)
+                            .frame(width: 140, height: 50)
+                            .background(Color(hex: "475569").opacity(0.4))
+                            .foregroundColor(Color(hex: "e2e8f0"))
+                            .cornerRadius(16)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(Color(hex: "94a3b8").opacity(0.2), lineWidth: 1)
+                            )
                     }
                 }
+                .padding(.top, 8)
+
+                // Phase legend
+                HStack(spacing: 16) {
+                    ForEach(phases.indices, id: \ .self) { index in
+                        HStack(spacing: 6) {
+                            Circle()
+                                .fill(phases[index].color)
+                                .frame(width: 10, height: 10)
+                            Text(phases[index].name)
+                                .font(.caption2)
+                                .foregroundColor(Color(hex: "94a3b8"))
+                        }
+                    }
+                }
+                .padding(.top, 8)
             }
-            .font(.subheadline)
-            .padding(.top)
+            .padding()
         }
-        .padding()
         .onAppear(perform: resetSession)
     }
 
     private var breathingRing: some View {
         ZStack {
             Circle()
-                .stroke(Color.secondary.opacity(0.2), lineWidth: 28)
+                .stroke(Color.secondary.opacity(0.15), lineWidth: 24)
 
+            // Phase colored arcs
             ForEach(phases.indices, id: \ .self) { index in
                 CircleArc(startAngle: startAngle(for: index), endAngle: endAngle(for: index))
-                    .stroke(phases[index].color.opacity(currentPhaseIndex == index ? 0.9 : 0.4), lineWidth: 28)
+                    .stroke(phases[index].color.opacity(currentPhaseIndex == index ? 0.8 : 0.3), lineWidth: 24)
             }
 
+            // Golden progress arc
             CircleArc(startAngle: progressStartAngle, endAngle: progressEndAngle)
-                .stroke(Color.white, style: StrokeStyle(lineWidth: 32, lineCap: .round))
-                .shadow(color: .black.opacity(0.2), radius: 3, x: 0, y: 1)
+                .stroke(
+                    LinearGradient(
+                        colors: [Color(hex: "fbbf24"), Color(hex: "f59e0b")],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    ),
+                    style: StrokeStyle(lineWidth: 28, lineCap: .round)
+                )
+                .shadow(color: Color(hex: "fbbf24").opacity(0.5), radius: 8)
+
+            // Golden dot at current position
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [Color.white, Color(hex: "fbbf24")],
+                        center: .center,
+                        startRadius: 0,
+                        endRadius: 12
+                    )
+                )
+                .frame(width: 24, height: 24)
+                .shadow(color: Color(hex: "fbbf24").opacity(0.8), radius: 10)
+                .offset(y: -126)
+                .rotationEffect(.degrees(progressFraction * 360))
 
             Text(progressLabel)
-                .font(.title2)
-                .bold()
-                .foregroundColor(.white)
+                .font(.system(size: 20, weight: .bold, design: .rounded))
+                .foregroundStyle(
+                    LinearGradient(
+                        colors: [Color.white, Color(hex: "cbd5e1")],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
         }
     }
 

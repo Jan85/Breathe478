@@ -31,8 +31,7 @@ function updateCycleCount() {
 
 function updateDot() {
   const progressAngle = (elapsed / totalDuration) * 360;
-  dot.style.transform = `translate(-50%, -50%) rotate(${progressAngle}deg) translate(0, -148px)`;
-  dot.style.backgroundColor = 'white';
+  dot.style.transform = `translate(-50%, -50%) rotate(${progressAngle}deg) translate(0, -125px)`;
 }
 
 async function ensureAudioContext() {
