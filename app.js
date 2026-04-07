@@ -18,6 +18,7 @@ let cyclesCompleted = 0;
 let totalDuration = phases.reduce((sum, phase) => sum + phase.duration, 0);
 let phaseStartTime = null;
 let phaseEndTime = null;
+let audioContext = null;
 
 function updateLabel() {
   phaseName.textContent = phases[currentPhase].name;
@@ -34,27 +35,49 @@ function updateDot() {
   dot.style.backgroundColor = 'white';
 }
 
-function playTone(frequency) {
+async function ensureAudioContext() {
   const AudioContext = window.AudioContext || window.webkitAudioContext;
-  if (!AudioContext) return;
-  const context = new AudioContext();
+  if (!AudioContext) return null;
+
+  if (!audioContext) {
+    audioContext = new AudioContext();
+  }
+
+  if (audioContext.state === 'suspended') {
+    try {
+      await audioContext.resume();
+    } catch (error) {
+      console.warn('AudioContext resume failed:', error);
+    }
+  }
+
+  return audioContext;
+}
+
+async function playTone(frequency) {
+  const context = await ensureAudioContext();
+  if (!context) return;
+
   const oscillator = context.createOscillator();
   const gain = context.createGain();
   oscillator.type = 'sine';
   oscillator.frequency.value = frequency;
+  gain.gain.setValueAtTime(0.15, context.currentTime);
   oscillator.connect(gain);
   gain.connect(context.destination);
-  gain.gain.value = 0.15;
   oscillator.start();
   oscillator.stop(context.currentTime + 0.12);
-  oscillator.onended = () => context.close();
+  oscillator.onended = () => {
+    oscillator.disconnect();
+    gain.disconnect();
+  };
 }
 
-function startPhase(index) {
+async function startPhase(index) {
   currentPhase = index;
   phaseStartTime = performance.now();
   phaseEndTime = phaseStartTime + phases[index].duration * 1000;
-  playTone(phases[index].frequency);
+  await playTone(phases[index].frequency);
   updateLabel();
   updateDot();
 }
@@ -79,13 +102,14 @@ function tick() {
   updateDot();
 }
 
-function startSession() {
+async function startSession() {
   clearInterval(intervalId);
   currentPhase = 0;
   cyclesCompleted = 0;
   elapsed = 0;
   updateCycleCount();
-  startPhase(0);
+  await ensureAudioContext();
+  await startPhase(0);
   intervalId = setInterval(tick, 50);
 }
 
