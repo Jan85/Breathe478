@@ -116,6 +116,15 @@ async function startSession() {
 function stopSession() {
   clearInterval(intervalId);
   intervalId = null;
+  // Reset UI to initial state
+  currentPhase = 0;
+  elapsed = 0;
+  cyclesCompleted = 0;
+  phaseStartTime = null;
+  phaseEndTime = null;
+  updateLabel();
+  updateDot();
+  updateCycleCount();
 }
 
 startBtn.addEventListener('click', startSession);

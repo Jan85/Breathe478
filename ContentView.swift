@@ -11,6 +11,7 @@ struct ContentView: View {
     @State private var remainingSeconds = 4
     @State private var isRunning = false
     @State private var timer: Timer? = nil
+    @State private var cyclesCompleted = 0
 
     private var totalDuration: Int {
         phases.reduce(0) { $0 + $1.duration }
@@ -37,6 +38,10 @@ struct ContentView: View {
                 Text("\(remainingSeconds) seconds")
                     .font(.title)
                     .monospacedDigit()
+                
+                Text("Cycles: \(cyclesCompleted)")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
             }
 
             HStack(spacing: 24) {
@@ -126,6 +131,7 @@ struct ContentView: View {
         stopSession()
         currentPhaseIndex = 0
         remainingSeconds = phases[0].duration
+        cyclesCompleted = 0
         isRunning = true
         SoundPlayer.shared.playTone()
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
@@ -142,6 +148,7 @@ struct ContentView: View {
     private func resetSession() {
         currentPhaseIndex = 0
         remainingSeconds = phases[0].duration
+        cyclesCompleted = 0
         isRunning = false
     }
 
@@ -159,7 +166,11 @@ struct ContentView: View {
             remainingSeconds = phases[nextIndex].duration
             SoundPlayer.shared.playTone()
         } else {
-            stopSession()
+            // Cycle complete - increment count and restart from beginning
+            cyclesCompleted += 1
+            currentPhaseIndex = 0
+            remainingSeconds = phases[0].duration
+            SoundPlayer.shared.playTone()
         }
     }
 }

@@ -70,18 +70,6 @@ h1 {
   box-shadow: 0 0 20px rgba(255,255,255,0.3);
 }
 
-.dot {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) rotate(0deg) translate(0, -148px);
-  transform-origin: center;
-  box-shadow: 0 0 20px rgba(255,255,255,0.3);
-}
-
 .ring-label {
   position: absolute;
   top: 50%;
