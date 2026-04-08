@@ -66,37 +66,65 @@ h1 {
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  /* Calm colors: blue for inhale, purple for hold, green for exhale */
+  /* Calm colors: blue for inhale, yellow for hold, green for exhale */
   background: conic-gradient(
-    #38bdf8 0deg 75.789deg,    /* Sky blue - Breathe In */
-    #a78bfa 75.789deg 211.053deg,  /* Purple - Hold */
-    #4ade80 211.053deg 360deg    /* Green - Breathe Out */
+    #38bdf8 0deg 75.789deg,    /* Sky blue - INHALE */
+    #facc15 75.789deg 211.053deg,  /* Yellow - HOLD */
+    #4ade80 211.053deg 360deg    /* Green - EXHALE */
   );
   mask: radial-gradient(circle, transparent 62%, black 62%);
   -webkit-mask: radial-gradient(circle, transparent 62%, black 62%);
   position: relative;
   box-shadow: 
     0 0 60px rgba(56, 189, 248, 0.15),
-    0 0 100px rgba(167, 139, 250, 0.1);
+    0 0 100px rgba(250, 204, 21, 0.1);
 }
 
 .dot {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%) rotate(0deg) translate(0, -125px);
   transform-origin: center;
-  /* Golden/amber color - warm and calming */
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
-  box-shadow: 
-    0 0 20px rgba(251, 191, 36, 0.8),
-    0 0 40px rgba(251, 191, 36, 0.4),
-    0 2px 8px rgba(0, 0, 0, 0.3);
   z-index: 5;
   border: 2px solid rgba(255, 255, 255, 0.9);
+  /* Use CSS variable for color */
+  --dot-color: #38bdf8;
+}
+
+/* Outer ring color - matches current phase */
+.dot::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 50%;
+  background: var(--dot-color, #38bdf8);
+  box-shadow: 
+    0 0 20px var(--dot-color, #38bdf8),
+    0 0 40px var(--dot-color, #38bdf8)80,
+    0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Bright center dot */
+.dot::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 
+    0 0 8px white,
+    0 0 12px white;
 }
 
 .ring-label {
@@ -114,12 +142,34 @@ h1 {
 }
 
 #phase-name {
-  font-size: 1.1rem;
+  font-size: 1.5rem;
+  margin-bottom: 4px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+}
+
+.phase-main {
+  display: block;
+  margin-bottom: 2px;
+}
+
+.phase-sub {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: #64748b;
   margin-bottom: 8px;
-  font-weight: 500;
-  color: #94a3b8;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.05em;
+}
+
+.phase-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+  vertical-align: middle;
+  box-shadow: 0 0 10px currentColor;
 }
 
 #remaining {
@@ -191,4 +241,35 @@ button:not(.primary) {
 button:not(.primary):hover {
   background: rgba(71, 85, 105, 0.6);
   border-color: rgba(148, 163, 184, 0.2);
+}
+
+/* Toggle button */
+.toggle {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  box-shadow: 
+    0 4px 14px rgba(59, 130, 246, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+  min-width: 160px;
+}
+
+.toggle:hover {
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  box-shadow: 
+    0 6px 20px rgba(59, 130, 246, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.15) inset;
+}
+
+.toggle.running {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  box-shadow: 
+    0 4px 14px rgba(239, 68, 68, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+}
+
+.toggle.running:hover {
+  background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+  box-shadow: 
+    0 6px 20px rgba(239, 68, 68, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.15) inset;
 }

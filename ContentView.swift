@@ -2,9 +2,9 @@ import SwiftUI
 
 struct ContentView: View {
     private let phases: [Phase] = [
-        .init(name: "Breathe In", duration: 4, color: Color(hex: "38bdf8")),    // Sky blue
-        .init(name: "Hold", duration: 7, color: Color(hex: "a78bfa")),        // Purple
-        .init(name: "Breathe Out", duration: 8, color: Color(hex: "4ade80"))  // Green
+        .init(name: "INHALE", subtitle: "Breathe In", duration: 4, color: Color(hex: "38bdf8")),    // Sky blue
+        .init(name: "HOLD", subtitle: "Hold", duration: 7, color: Color(hex: "facc15")),           // Yellow
+        .init(name: "EXHALE", subtitle: "Breathe Out", duration: 8, color: Color(hex: "4ade80"))   // Green
     ]
     
     // Custom color extension for hex support
@@ -73,13 +73,16 @@ struct ContentView: View {
                 breathingRing
                     .frame(width: 280, height: 280)
 
-                VStack(spacing: 8) {
+                VStack(spacing: 4) {
                     Text(phases[currentPhaseIndex].name)
-                        .font(.title3)
-                        .fontWeight(.medium)
-                        .foregroundColor(Color(hex: "94a3b8"))
+                        .font(.system(size: 20, weight: .bold, design: .rounded))
+                        .foregroundColor(phases[currentPhaseIndex].color)
                         .textCase(.uppercase)
-                        .tracking(2)
+                        .tracking(3)
+                    
+                    Text(phases[currentPhaseIndex].subtitle)
+                        .font(.subheadline)
+                        .foregroundColor(Color(hex: "64748b"))
 
                     Text("\(remainingSeconds)")
                         .font(.system(size: 56, weight: .bold, design: .rounded))
@@ -102,35 +105,28 @@ struct ContentView: View {
                         .padding(.top, 4)
                 }
 
-                HStack(spacing: 20) {
-                    Button(action: startSession) {
-                        Text(isRunning ? "Restart" : "Start")
-                            .font(.headline)
-                            .frame(width: 140, height: 50)
-                            .background(
-                                LinearGradient(
-                                    colors: [Color(hex: "3b82f6"), Color(hex: "2563eb")],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
+                // Single toggle button
+                Button(action: toggleSession) {
+                    Text(isRunning ? "Stop" : "Start")
+                        .font(.headline())
+                        .frame(width: 180, height: 54)
+                        .background(
+                            LinearGradient(
+                                colors: isRunning 
+                                    ? [Color(hex: "ef4444"), Color(hex: "dc2626")]
+                                    : [Color(hex: "3b82f6"), Color(hex: "2563eb")],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
                             )
-                            .foregroundColor(.white)
-                            .cornerRadius(16)
-                            .shadow(color: Color(hex: "3b82f6").opacity(0.4), radius: 8, x: 0, y: 4)
-                    }
-
-                    Button(action: stopSession) {
-                        Text("Stop")
-                            .font(.headline)
-                            .frame(width: 140, height: 50)
-                            .background(Color(hex: "475569").opacity(0.4))
-                            .foregroundColor(Color(hex: "e2e8f0"))
-                            .cornerRadius(16)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 16)
-                                    .stroke(Color(hex: "94a3b8").opacity(0.2), lineWidth: 1)
-                            )
-                    }
+                        )
+                        .foregroundColor(.white)
+                        .cornerRadius(16)
+                        .shadow(
+                            color: isRunning 
+                                ? Color(hex: "ef4444").opacity(0.4)
+                                : Color(hex: "3b82f6").opacity(0.4),
+                            radius: 8, x: 0, y: 4
+                        )
                 }
                 .padding(.top, 8)
 
@@ -177,18 +173,18 @@ struct ContentView: View {
                 )
                 .shadow(color: Color(hex: "fbbf24").opacity(0.5), radius: 8)
 
-            // Golden dot at current position
+            // Dot at current position - matches current phase color with white center
             Circle()
                 .fill(
                     RadialGradient(
-                        colors: [Color.white, Color(hex: "fbbf24")],
+                        colors: [Color.white, phases[currentPhaseIndex].color],
                         center: .center,
                         startRadius: 0,
                         endRadius: 12
                     )
                 )
                 .frame(width: 24, height: 24)
-                .shadow(color: Color(hex: "fbbf24").opacity(0.8), radius: 10)
+                .shadow(color: phases[currentPhaseIndex].color.opacity(0.8), radius: 10)
                 .offset(y: -126)
                 .rotationEffect(.degrees(progressFraction * 360))
 
@@ -229,29 +225,33 @@ struct ContentView: View {
         "\(phase.name): \(phase.duration) seconds"
     }
 
-    private func startSession() {
-        stopSession()
-        currentPhaseIndex = 0
-        remainingSeconds = phases[0].duration
-        cyclesCompleted = 0
-        isRunning = true
-        SoundPlayer.shared.playTone()
-        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
-            tick()
+    private func toggleSession() {
+        if isRunning {
+            // Stop the session
+            stopSession()
+            resetSession()
+        } else {
+            // Start the session
+            currentPhaseIndex = 0
+            remainingSeconds = phases[0].duration
+            cyclesCompleted = 0
+            isRunning = true
+            SoundPlayer.shared.playTone()
+            timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
+                tick()
+            }
         }
     }
 
     private func stopSession() {
         timer?.invalidate()
         timer = nil
-        isRunning = false
     }
 
     private func resetSession() {
         currentPhaseIndex = 0
         remainingSeconds = phases[0].duration
         cyclesCompleted = 0
-        isRunning = false
     }
 
     private func tick() {
@@ -279,6 +279,7 @@ struct ContentView: View {
 
 private struct Phase {
     let name: String
+    let subtitle: String
     let duration: Int
     let color: Color
 }

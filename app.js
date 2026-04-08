@@ -1,20 +1,21 @@
 const phases = [
-  { name: 'Breathe In', duration: 4, frequency: 660 },
-  { name: 'Hold', duration: 7, frequency: 880 },
-  { name: 'Breathe Out', duration: 8, frequency: 520 }
+  { name: 'INHALE', subtitle: 'Breathe In', duration: 4, frequency: 660, color: '#38bdf8' },    // Sky blue
+  { name: 'HOLD', subtitle: 'Hold', duration: 7, frequency: 880, color: '#facc15' },             // Yellow
+  { name: 'EXHALE', subtitle: 'Breathe Out', duration: 8, frequency: 520, color: '#4ade80' }     // Green
 ];
 
 const dot = document.getElementById('dot');
 const phaseName = document.getElementById('phase-name');
+const phaseSubtitle = document.getElementById('phase-subtitle');
 const remainingText = document.getElementById('remaining');
 const cycleCountText = document.getElementById('cycle-count');
-const startBtn = document.getElementById('start-btn');
-const stopBtn = document.getElementById('stop-btn');
+const toggleBtn = document.getElementById('toggle-btn');
 
 let currentPhase = 0;
 let intervalId = null;
 let elapsed = 0;
 let cyclesCompleted = 0;
+let isRunning = false;
 let totalDuration = phases.reduce((sum, phase) => sum + phase.duration, 0);
 let phaseStartTime = null;
 let phaseEndTime = null;
@@ -22,7 +23,10 @@ let audioContext = null;
 
 function updateLabel() {
   phaseName.textContent = phases[currentPhase].name;
+  phaseSubtitle.textContent = phases[currentPhase].subtitle;
   remainingText.textContent = Math.ceil(Math.max(0, phaseEndTime ? (phaseEndTime - performance.now()) / 1000 : phases[currentPhase].duration));
+  // Update dot color to match current phase using CSS variable
+  dot.style.setProperty('--dot-color', phases[currentPhase].color);
 }
 
 function updateCycleCount() {
@@ -101,33 +105,41 @@ function tick() {
   updateDot();
 }
 
-async function startSession() {
-  clearInterval(intervalId);
-  currentPhase = 0;
-  cyclesCompleted = 0;
-  elapsed = 0;
-  updateCycleCount();
-  await ensureAudioContext();
-  await startPhase(0);
-  intervalId = setInterval(tick, 50);
+function toggleSession() {
+  if (isRunning) {
+    // Stop the session
+    clearInterval(intervalId);
+    intervalId = null;
+    isRunning = false;
+    toggleBtn.textContent = 'Start';
+    toggleBtn.classList.remove('running');
+    // Reset UI to initial state
+    currentPhase = 0;
+    elapsed = 0;
+    cyclesCompleted = 0;
+    phaseStartTime = null;
+    phaseEndTime = null;
+    updateLabel();
+    updateDot();
+    updateCycleCount();
+  } else {
+    // Start the session
+    clearInterval(intervalId);
+    currentPhase = 0;
+    cyclesCompleted = 0;
+    elapsed = 0;
+    updateCycleCount();
+    ensureAudioContext().then(() => {
+      startPhase(0);
+      intervalId = setInterval(tick, 50);
+    });
+    isRunning = true;
+    toggleBtn.textContent = 'Stop';
+    toggleBtn.classList.add('running');
+  }
 }
 
-function stopSession() {
-  clearInterval(intervalId);
-  intervalId = null;
-  // Reset UI to initial state
-  currentPhase = 0;
-  elapsed = 0;
-  cyclesCompleted = 0;
-  phaseStartTime = null;
-  phaseEndTime = null;
-  updateLabel();
-  updateDot();
-  updateCycleCount();
-}
-
-startBtn.addEventListener('click', startSession);
-stopBtn.addEventListener('click', stopSession);
+toggleBtn.addEventListener('click', toggleSession);
 
 window.addEventListener('load', () => {
   updateLabel();
