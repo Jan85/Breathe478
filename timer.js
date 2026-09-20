@@ -1,6 +1,6 @@
-const BEEP_INTERVAL_SECONDS = 5;
-
 const elapsedText = document.getElementById('elapsed');
+const beepNoteText = document.getElementById('beep-note');
+const beepIntervalSelect = document.getElementById('beep-interval');
 const startBtn = document.getElementById('start-btn');
 const stopBtn = document.getElementById('stop-btn');
 const resetBtn = document.getElementById('reset-btn');
@@ -11,6 +11,7 @@ let startTime = null; // performance.now() when the timer last started/resumed
 let elapsedSeconds = 0; // total seconds counted so far (persists across pauses)
 let lastBeepedSecond = 0; // last elapsed second at which a beep played
 let audioContext = null;
+let beepIntervalSeconds = Number(beepIntervalSelect.value);
 
 function formatTime(totalSeconds) {
   const minutes = Math.floor(totalSeconds / 60);
@@ -66,7 +67,7 @@ function tick() {
 
   if (newElapsedSeconds > lastBeepedSecond) {
     for (let second = lastBeepedSecond + 1; second <= newElapsedSeconds; second++) {
-      if (second % BEEP_INTERVAL_SECONDS === 0) {
+      if (second % beepIntervalSeconds === 0) {
         playBeep();
       }
     }
@@ -105,8 +106,21 @@ function resetTimer() {
   updateDisplay();
 }
 
+function updateBeepNote() {
+  beepNoteText.textContent = `Beeps every ${beepIntervalSeconds} seconds`;
+}
+
+function handleIntervalChange() {
+  beepIntervalSeconds = Number(beepIntervalSelect.value);
+  updateBeepNote();
+}
+
 startBtn.addEventListener('click', startTimer);
 stopBtn.addEventListener('click', stopTimer);
 resetBtn.addEventListener('click', resetTimer);
+beepIntervalSelect.addEventListener('change', handleIntervalChange);
 
-window.addEventListener('load', updateDisplay);
+window.addEventListener('load', () => {
+  updateDisplay();
+  updateBeepNote();
+});

@@ -21,9 +21,9 @@ interval timer.
 ### Interval Timer
 
 `timer.html` is a simple stopwatch: tap `Start` to begin counting up, `Stop`
-to pause, and `Reset` to return to `00:00`. It plays a short beep every 5
-seconds (5s, 10s, 15s, ...) while running so you can track elapsed time by
-ear.
+to pause, and `Reset` to return to `00:00`. It plays a short beep every N
+seconds while running so you can track elapsed time by ear. Use the "Beep
+every" dropdown to choose the interval (5, 10, 15, 30, or 60 seconds).
 
 ## Publish on GitHub Pages
 
